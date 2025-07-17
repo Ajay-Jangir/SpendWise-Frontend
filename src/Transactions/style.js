@@ -413,6 +413,12 @@ const Wrapper = styled.div`
             .action-buttons button:hover {
                 filter: brightness(1.1);
             }
+            button:focus {
+                background-color: #333; /* or any darker shade you want */
+                color: white; /* optional, for better contrast */
+                outline: none; /* optional, to remove browser default blue outline */
+                box-shadow: 0 0 0 2px #b4b2b2ff; /* optional visual focus ring */
+            }
         }
     }
 
@@ -730,6 +736,35 @@ const Wrapper = styled.div`
                 font-size: 1rem;
                 left: 0.8rem;
             }
+        }
+    }
+
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(60, 120, 180, 0.15);
+        backdrop-filter: blur(6px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+
+    .loading-container {
+        width: 200px;
+        height: 200px;
+
+        @media (max-width: 768px) {
+            width: 150px;
+            height: 150px;
+        }
+
+        @media (max-width: 480px) {
+            width: 120px;
+            height: 120px;
         }
     }
 `;

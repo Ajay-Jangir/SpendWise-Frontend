@@ -1,20 +1,47 @@
-import React, { useState } from "react";
-import { Wrapper } from "./style";
+import Lottie from 'lottie-react';
+import { Eye, EyeOff, Pencil, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
-import { Pencil, X, Eye, EyeOff } from "lucide-react";
 import 'react-toastify/dist/ReactToastify.css';
+import axiosInstance from "../axiosInstance";
+import Loading from '../utilities/Loading.json';
+import { Wrapper } from "./style";
 
 const SettingsPage = () => {
+    const [loading, setLoading] = useState(true);
     const [user, setUser] = useState({
-        username: "ajay.kumar",
-        email: "ajay@example.com"
+        username: "",
+        email: ""
     });
+
+    useEffect(() => {
+        const fetchUserDetails = async () => {
+            try {
+                const res = await axiosInstance.get("/api/auth/user");
+                const { name, email } = res.data;
+
+                setUser({
+                    username: name,
+                    email: email
+                });
+            } catch (err) {
+                toast.error("Failed to load user details.");
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUserDetails();
+    }, []);
+
 
     const [editMode, setEditMode] = useState({
         username: false,
         email: false
     });
 
+    const [loadingField, setLoadingField] = useState(null);
     const [changePwd, setChangePwd] = useState({
         current: "",
         new: "",
@@ -26,19 +53,37 @@ const SettingsPage = () => {
     const [showNewPwd, setShowNewPwd] = useState(false);
     const [showConfirmPwd, setShowConfirmPwd] = useState(false);
 
-
-
-    const handleUserFieldSave = (field) => {
+    const handleUserFieldSave = async (field) => {
         if (!user[field].trim()) {
             toast.error(`Please enter a valid ${field}.`);
             return;
         }
 
-        toast.success(`${field === 'username' ? 'Username' : 'Email'} updated successfully.`);
-        setEditMode(prev => ({ ...prev, [field]: false }));
+        setLoadingField(field);
+
+        try {
+            setLoading(true)
+            const payload = field === 'username'
+                ? { name: user.username.trim() }
+                : { email: user.email.trim().toLowerCase() };
+
+            await axiosInstance.put("/api/auth/edit", payload);
+
+            toast.success(`${field === 'username' ? 'Username' : 'Email'} updated successfully.`);
+            setEditMode(prev => ({ ...prev, [field]: false }));
+        } catch (err) {
+            if (err.response?.status === 409) {
+                toast.error("Email is already in use.");
+            } else {
+                toast.error("Failed to update.");
+            }
+        } finally {
+            setLoadingField(null);
+            setLoading(false)
+        }
     };
 
-    const handleResetPassword = () => {
+    const handleResetPassword = async () => {
         const { current, new: newPwd, confirm } = changePwd;
 
         if (!current || !newPwd || !confirm) {
@@ -56,18 +101,48 @@ const SettingsPage = () => {
             return;
         }
 
-        if (current !== "dummyOldPassword") {
-            toast.error("Current password is incorrect.");
-            return;
-        }
+        setLoadingField("password");
 
-        toast.success("Password updated successfully!");
-        setChangePwd({ current: "", new: "", confirm: "" });
-        setShowModal(false);
+        try {
+            setLoading(true)
+            const res = await axiosInstance.put("/api/auth/edit", {
+                currentPassword: current,
+                password: newPwd
+            });
+
+            if (res.data?.token) {
+                localStorage.setItem("token", res.data.token);
+                axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${res.data.token}`;
+            }
+
+            toast.success("Password updated successfully!");
+            setShowModal(false);
+            setChangePwd({ current: "", new: "", confirm: "" });
+        } catch (err) {
+            if (err.response?.status === 401) {
+                toast.error("Current password is incorrect.");
+            } else if (err.response?.status === 400) {
+                toast.error("New password must be different from current password.");
+            } else {
+                toast.error("Failed to update password.");
+            }
+        } finally {
+            setLoadingField(null);
+            setLoading(false)
+        }
     };
+
+
 
     return (
         <Wrapper>
+            {loading && (
+                <div className="loading-overlay">
+                    <div className="loading-container">
+                        <Lottie animationData={Loading} loop autoplay />
+                    </div>
+                </div>
+            )}
             <div className="settings-page">
                 <h2 className="page-title">Account Settings</h2>
 
@@ -85,11 +160,18 @@ const SettingsPage = () => {
                                         onChange={(e) => setUser({ ...user, username: e.target.value })}
                                     />
                                     {editMode.username ? (
-                                        <button className="icon-btn save" onClick={() => handleUserFieldSave("username")}>
-                                            Save
+                                        <button
+                                            className="icon-btn save"
+                                            onClick={() => handleUserFieldSave("username")}
+                                            disabled={loadingField === "username"}
+                                        >
+                                            {loadingField === "username" ? "Saving..." : "Save"}
                                         </button>
                                     ) : (
-                                        <button className="icon-btn edit" onClick={() => setEditMode(prev => ({ ...prev, username: true }))}>
+                                        <button
+                                            className="icon-btn edit"
+                                            onClick={() => setEditMode({ username: true, email: false })}
+                                        >
                                             <Pencil size={16} />
                                         </button>
                                     )}
@@ -106,11 +188,19 @@ const SettingsPage = () => {
                                         onChange={(e) => setUser({ ...user, email: e.target.value })}
                                     />
                                     {editMode.email ? (
-                                        <button className="icon-btn save" onClick={() => handleUserFieldSave("email")}>
-                                            Save
+                                        <button
+                                            className="icon-btn save"
+                                            onClick={() => handleUserFieldSave("email")}
+                                            disabled={loadingField === "email"}
+                                        >
+                                            {loadingField === "email" ? "Saving..." : "Save"}
                                         </button>
                                     ) : (
-                                        <button className="icon-btn edit" onClick={() => setEditMode(prev => ({ ...prev, email: true }))}>
+                                        <button
+                                            className="icon-btn edit"
+                                            onClick={() => setEditMode({ username: false, email: true })}
+                                            disabled={editMode.username} // prevent both from being edited
+                                        >
                                             <Pencil size={16} />
                                         </button>
                                     )}

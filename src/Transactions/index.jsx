@@ -1,10 +1,16 @@
-import React, { useMemo, useRef, useState } from 'react';
+/* eslint-disable no-unused-vars */
+import React, { useMemo, useRef, useState, useEffect } from 'react';
 import { FaEdit, FaTrash, FaUpload, FaSearch } from 'react-icons/fa';
 import { MdAddCircle } from 'react-icons/md';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Wrapper from './style';
 import Select from 'react-select';
+import axiosInstance from '../axiosInstance';
+import Loading from '../utilities/Loading.json';
+import Lottie from 'lottie-react';
+import Swal from 'sweetalert2';
+
 
 const formatINR = (amount) => {
     if (amount >= 1e7) {
@@ -25,31 +31,6 @@ const filterTypeOptions = [
     { value: 'all', label: 'All Types' },
     { value: 'income', label: 'Income' },
     { value: 'expense', label: 'Expense' }
-];
-
-
-
-const initialData = [
-    { id: 1, date: '2025-07-18', description: 'Book Purchase on React and Design Patterns', category: 'Education', type: 'expense', amount: 90 },
-    { id: 2, date: '2025-07-15', description: 'Electricity Bill for July', category: 'Utilities', type: 'expense', amount: 400 },
-    { id: 3, date: '2025-06-25', description: 'Gift from friend', category: 'Personal', type: 'income', amount: 150 },
-    { id: 4, date: '2025-06-10', description: 'Internet provider monthly charges', category: 'Utilities', type: 'expense', amount: 350 },
-    { id: 5, date: '2025-06-02', description: 'Freelance payment for design project', category: 'Job', type: 'income', amount: 1800 },
-    { id: 6, date: '2025-05-05', description: 'Netflix subscription monthly', category: 'Entertainment', type: 'expense', amount: 199 },
-    { id: 7, date: '2025-05-10', description: 'Dinner with colleagues', category: 'Food', type: 'expense', amount: 75 },
-    { id: 8, date: '2025-05-28', description: 'Bonus payout from project', category: 'Job', type: 'income', amount: 1200 },
-    { id: 9, date: '2025-04-01', description: 'Monthly Salary credited', category: 'Job', type: 'income', amount: 5000 },
-    { id: 10, date: '2025-04-12', description: 'Shopping for summer clothes', category: 'Shopping', type: 'expense', amount: 450 },
-    { id: 11, date: '2025-03-20', description: 'Coffee machine purchase', category: 'Appliances', type: 'expense', amount: 350 },
-    { id: 12, date: '2025-03-22', description: 'Client freelance milestone payment', category: 'Job', type: 'income', amount: 900 },
-    { id: 13, date: '2025-03-30', description: 'Uber ride to airport', category: 'Transport', type: 'expense', amount: 40 },
-    { id: 14, date: '2025-02-10', description: 'Gym membership fee', category: 'Fitness', type: 'expense', amount: 60 },
-    { id: 15, date: '2025-02-14', description: 'Valentine\'s Day dinner', category: 'Food', type: 'expense', amount: 120 },
-    { id: 16, date: '2025-02-28', description: 'Monthly Salary credited', category: 'Job', type: 'income', amount: 5000 },
-    { id: 17, date: '2025-01-01', description: 'New Year Celebration snacks and drinks', category: 'Entertainment', type: 'expense', amount: 250 },
-    { id: 18, date: '2025-01-10', description: 'Rent payment', category: 'Housing', type: 'expense', amount: 1200 },
-    { id: 19, date: '2025-01-20', description: 'Grocery shopping', category: 'Food', type: 'expense', amount: 180 },
-    { id: 20, date: '2025-01-28', description: 'Stock dividend payout', category: 'Investment', type: 'income', amount: 300 }
 ];
 
 const getMonthLabel = (dateStr) => {
@@ -73,11 +54,9 @@ const formatAmountWithCommas = (val) => {
     return decimalPart !== undefined ? `${formattedInt}.${decimalPart}` : formattedInt;
 };
 
-
-
-
 const Transactions = () => {
-    const [transactions, setTransactions] = useState(initialData);
+    const [transactions, setTransactions] = useState([]);
+    const [loading, setLoading] = useState(false);
     const [search, setSearch] = useState('');
     const [typeFilter, setTypeFilter] = useState('all');
     const [monthFilter, setMonthFilter] = useState('all');
@@ -99,9 +78,31 @@ const Transactions = () => {
     });
     const tableBodyRef = useRef();
 
+    useEffect(() => {
+        const handleEsc = (e) => {
+            if (e.key === 'Escape') {
+                if (modalType) {
+                    setModalType(null); // Close Add/Edit modal
+                }
+                if (confirmDelete.type) {
+                    setConfirmDelete({ type: null, id: null }); // Close delete modal
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleEsc);
+        return () => window.removeEventListener('keydown', handleEsc);
+    }, [modalType, confirmDelete]);
+
     const grouped = useMemo(() => {
         let data = [...transactions];
-        if (search) data = data.filter(t => t.description.toLowerCase().includes(search.toLowerCase()));
+        if (search) {
+            const lowerSearch = search.toLowerCase();
+            data = data.filter(t =>
+                t.description.toLowerCase().includes(lowerSearch) ||
+                t.category.toLowerCase().includes(lowerSearch)
+            );
+        }
         if (typeFilter !== 'all') data = data.filter(t => t.type === typeFilter);
         if (monthFilter !== 'all') data = data.filter(t => t.date.startsWith(monthFilter));
         data.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -115,6 +116,24 @@ const Transactions = () => {
         return grouped;
     }, [transactions, search, typeFilter, monthFilter]);
 
+    useEffect(() => {
+        const fetchTransactions = async () => {
+            try {
+                setLoading(true);
+                const res = await axiosInstance.get('/api/spend');
+                const mapped = res.data.map(t => ({ ...t, id: t._id }));
+                setTransactions(mapped);
+            } catch (err) {
+                toast.error('Failed to load transactions');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchTransactions();
+    }, []);
+
+
+
     const allDisplayedIds = Object.values(grouped).flat().map(t => t.id);
 
     const handleSelect = (id) => {
@@ -125,18 +144,42 @@ const Transactions = () => {
         setSelectedIds(selectedIds.length === allDisplayedIds.length ? [] : allDisplayedIds);
     };
 
-    const handleConfirmSingleDelete = () => {
-        setTransactions(prev => prev.filter(t => t.id !== confirmDelete.id));
-        setSelectedIds(prev => prev.filter(i => i !== confirmDelete.id));
-        toast.success('Transaction deleted successfully');
+    const handleConfirmSingleDelete = async () => {
+        try {
+            setLoading(true);
+            await axiosInstance.delete(`/api/spend/${confirmDelete.id}`);
+            toast.success('Transaction deleted');
+
+            setTransactions(prev =>
+                prev.filter(t => t.id !== confirmDelete.id && t._id !== confirmDelete.id)
+            );
+        } catch (err) {
+            toast.error('Failed to delete');
+        } finally {
+            setLoading(false)
+        }
         setConfirmDelete({ type: null, id: null });
     };
 
-    const handleConfirmMassDelete = () => {
-        setTransactions(prev => prev.filter(t => !selectedIds.includes(t.id)));
-        setSelectedIds([]);
-        toast.success('Deleted selected transactions successfully');
+    const handleConfirmMassDelete = async () => {
+        try {
+            setLoading(true);
+            await Promise.all(
+                selectedIds.map(id => axiosInstance.delete(`/api/spend/${id}`))
+            );
+
+            toast.success('Selected transactions deleted');
+
+            setTransactions(prev =>
+                prev.filter(t => !selectedIds.includes(t.id) && !selectedIds.includes(t._id))
+            );
+        } catch (err) {
+            toast.error('Failed to delete some items');
+        } finally {
+            setLoading(false)
+        }
         setConfirmDelete({ type: null, id: null });
+        setSelectedIds([]);
     };
 
     const handleDateChange = (e) => {
@@ -162,50 +205,47 @@ const Transactions = () => {
     };
     ;
 
-    const handleSave = () => {
-        // Step 1: Required fields
+    const handleSave = async () => {
         if (!form.date || !form.description || !form.category || !form.amount) {
             toast.error('All fields are required');
             return;
         }
 
-        // Step 2: Raw input cleanup and validation
         const rawInput = form.amount.toString().replace(/[₹,]/g, '');
-        if (!/^\d*\.?\d{0,2}$/.test(rawInput)) {
-            toast.error('Amount contains invalid characters');
-            return;
-        }
-
-        // Step 3: Convert and validate number
         const numericAmount = Number(rawInput);
-        if (isNaN(numericAmount)) {
-            toast.error('Amount must be a valid number');
-            return;
-        }
-        if (numericAmount <= 0) {
-            toast.error('Amount must be greater than zero');
-            return;
-        }
-        if (numericAmount > 999999999) {
-            toast.error('Amount is too large');
+        if (isNaN(numericAmount) || numericAmount <= 0 || numericAmount > 999999999) {
+            toast.error('Invalid amount');
             return;
         }
 
-        // Step 4: Proceed to save
-        const id = modalType === 'edit' ? editing.id : Math.max(0, ...transactions.map(t => t.id)) + 1;
-        const updated = { ...form, id, amount: numericAmount };
+        const payload = {
+            date: form.date,
+            description: form.description.trim(),
+            category: form.category.trim(),
+            type: form.type,
+            amount: numericAmount
+        };
 
-        if (modalType === 'edit') {
-            setTransactions(prev => prev.map(t => (t.id === id ? updated : t)));
-            toast.success('Transaction Updated Successfully');
-        } else {
-            setTransactions(prev => [updated, ...prev]);
-            toast.success('Transaction Added Successfully');
-            setHighlightedId(id);
-            setTimeout(() => setHighlightedId(null), 5000);
-            setTimeout(() => scrollToRow(id), 100);
+        setLoading(true); // 🟡 Start loading
+
+        try {
+            if (modalType === 'edit') {
+                await axiosInstance.put(`/api/spend/${editing._id}`, payload);
+                toast.success('Transaction updated successfully');
+            } else {
+                await axiosInstance.post('/api/spend', payload);
+                toast.success('Transaction added successfully');
+            }
+
+            const res = await axiosInstance.get('/api/spend');
+            setTransactions(res.data.map(t => ({ ...t, id: t._id })));
+            setModalType(null);
+
+        } catch (err) {
+            toast.error('Failed to save transaction');
+        } finally {
+            setLoading(false); // ✅ Stop loading
         }
-        setModalType(null);
     };
 
 
@@ -228,30 +268,86 @@ const Transactions = () => {
         setModalType('edit');
     };
 
-    const handleImport = (e) => {
+    const handleImport = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        const today = new Date().toISOString().split('T')[0];
 
-        const imported = {
-            id: Math.max(...transactions.map(t => t.id)) + 1,
-            date: today,
-            description: `Imported from ${file.name}`,
-            category: 'Imported',
-            type: 'expense',
-            amount: 999
-        };
+        const formData = new FormData();
+        formData.append('file', file);
 
-        setTransactions(prev => [imported, ...prev]);
-        toast.success('Imported');
-        setHighlightedId(imported.id);
-        setTimeout(() => setHighlightedId(null), 5000);
-        setTimeout(() => scrollToRow(imported.id), 100);
-        setModalType(null);
+        setLoading(true); // 🟡 Start loading
+
+        try {
+            // 🟢 Upload the file
+            const res = await axiosInstance.post('/api/import/upload', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+
+            const { inserted, skipped, skippedDetails } = res.data;
+            toast.success(`Imported: ${inserted}, Skipped: ${skipped}`);
+
+            // 🟢 Fetch updated transactions from backend
+            const response = await axiosInstance.get('/api/spend');
+            const updated = response.data.map(t => ({ ...t, id: t._id }));
+            setTransactions(updated);
+
+            setModalType(null); // ✅ Close modal immediately
+
+            setLoading(false); // ✅ 1. Stop loading FIRST
+
+            // ✅ 2. Scroll to and highlight new entry
+            if (inserted > 0) {
+                const newIds = updated.slice(0, inserted).map(t => t.id);
+                setHighlightedId(newIds[0]);
+                setTimeout(() => setHighlightedId(null), 5000);
+                setTimeout(() => scrollToRow(newIds[0]), 100);
+            }
+
+            // ✅ 3. Show SweetAlert AFTER DOM paints
+            if (skippedDetails.length > 0) {
+                setTimeout(() => {
+                    const html = `
+                    <div style="max-height: 250px; overflow-y: auto; text-align: left;">
+                        ${skippedDetails.map((s, i) =>
+                        `<div><b>${i + 1}. ${s.description}</b> — ${s.reason}</div>`).join('')}
+                    </div>
+                    <hr />
+                    <div><b>Total:</b> ${inserted + skippedDetails.length}, 
+                    <b>Inserted:</b> ${inserted}, 
+                    <b>Skipped:</b> ${skippedDetails.length}</div>
+                `;
+
+                    Swal.fire({
+                        title: 'Import Summary',
+                        html,
+                        icon: 'info',
+                        confirmButtonText: 'Close',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        width: 600,
+                        customClass: {
+                            popup: 'swal-import-popup',
+                        },
+                    });
+                }, 500); // ✅ Enough delay for DOM update
+            }
+
+        } catch (err) {
+            toast.error('Import failed. Please check the file and try again.');
+            setLoading(false); // stop loading even on error
+        }
     };
+
 
     return (
         <Wrapper>
+            {loading && (
+                <div className="loading-overlay">
+                    <div className="loading-container">
+                        <Lottie animationData={Loading} loop autoplay />
+                    </div>
+                </div>
+            )}
             <div className="top-header">
                 <div className="filters">
                     <div className="filter-group">
@@ -296,7 +392,7 @@ const Transactions = () => {
                         <FaSearch className="search-icon" />
                         <input
                             type="text"
-                            placeholder="Search description..."
+                            placeholder="Search description & category..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
@@ -334,9 +430,13 @@ const Transactions = () => {
                         </tr>
                     </thead>
                     <tbody className="table-body">
-                        {Object.keys(grouped).length === 0 ? (
+                        {transactions.length === 0 ? (
                             <tr className="no-results">
-                                <td colSpan="7">No transactions found matching your filters or search.</td>
+                                <td colSpan="7">No transactions added till now</td>
+                            </tr>
+                        ) : Object.keys(grouped).length === 0 ? (
+                            <tr className="no-results">
+                                <td colSpan="7">No transactions found from search</td>
                             </tr>
                         ) : (
                             Object.entries(grouped).map(([monthKey, items]) => (
@@ -363,7 +463,7 @@ const Transactions = () => {
                                                 {t.description.split(' ').length > 20 && '...'}
                                             </td>
                                             <td>{t.category}</td>
-                                            <td>{t.type}</td>
+                                            <td>{t.type.charAt(0).toUpperCase() + t.type.slice(1)}</td>
                                             <td>{formatINR(t.amount)}</td>
                                             <td className="actions-col">
                                                 <span className="icon-wrapper">
@@ -511,6 +611,7 @@ const Transactions = () => {
                                         ? handleConfirmMassDelete
                                         : handleConfirmSingleDelete
                                 }
+                                autoFocus={true}
                             >
                                 Yes, Delete
                             </button>

@@ -37,7 +37,7 @@ const Wrapper = styled.div`
     .brand {
         font-size: 1.5rem;
         font-weight: 600;
-        color: #00b894;
+        color: #21a2a7;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -65,7 +65,7 @@ const Wrapper = styled.div`
         height: 36px;
         background: linear-gradient(135deg, #3c6850ff, #2a2a3e);
         border-radius: 50%;
-        border: 2px solid #00b894;
+        border: 2px solid #21a2a7;
         flex-shrink: 0;
         display: flex;
         align-items: center;

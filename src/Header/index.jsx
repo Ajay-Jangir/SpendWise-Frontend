@@ -1,12 +1,28 @@
 // components/Header.jsx
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Menu as MenuIcon } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import axiosInstance from '../axiosInstance';
 import Wrapper from './style';
 
 const Header = ({ toggleMenu }) => {
     const navigate = useNavigate();
-    const fullName = "Ajay Kumar";
+    const [fullName, setFullName] = useState('');
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const res = await axiosInstance.get('/api/auth/user');
+                setFullName(res.data?.name || '');
+            } catch (err) {
+                toast.error('Failed to fetch user details');
+                console.error(err);
+            }
+        };
+
+        fetchUser();
+    }, []);
 
     const initials = fullName
         .split(" ")
@@ -32,10 +48,14 @@ const Header = ({ toggleMenu }) => {
 
                 <div className="right-section">
                     <div className="profile-info">
-                        <span className="greeting">Welcome, {fullName}</span>
-                        <div className="profile-circle" onClick={handleProfileClick}>
-                            {initials}
-                        </div>
+                        {fullName && (
+                            <>
+                                <span className="greeting">Welcome, {fullName}</span>
+                                <div className="profile-circle" onClick={handleProfileClick}>
+                                    {initials}
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             </header>

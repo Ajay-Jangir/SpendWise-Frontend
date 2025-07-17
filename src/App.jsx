@@ -1,6 +1,6 @@
 // App.jsx
-import React, { useState } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import React from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import Layout from "./Layout";
 import './App.css';
 
@@ -9,23 +9,45 @@ import Dashboard from "./Dashboard/index";
 import Transactions from "./Transactions/index";
 import Setting from "./Setting/index";
 import Analysis from "./Analysis/index";
+import Register from "./Register/index";
+import Login from "./Login/index";
+
+const isAuthenticated = () => {
+  return !!localStorage.getItem('spendwise_token');
+};
+
+const PrivateRoute = () => {
+  return isAuthenticated() ? <Outlet /> : <Navigate to="/login" />;
+};
+
+const PublicRoute = () => {
+  return !isAuthenticated() ? <Outlet /> : <Navigate to="/" />;
+};
 
 function App() {
-  const [darkMode, setDarkMode] = useState(true);
-
   return (
-    <div className={darkMode ? "app dark" : "app light"}>
-      <Router>
-        <Routes>
-          <Route path="/" element={<Layout darkMode={darkMode} />}> {/* Optional: pass to layout */}
-            <Route index element={<Dashboard darkMode={darkMode} />} />
-            <Route path="transactions" element={<Transactions darkMode={darkMode} />} />
-            <Route path="analysis" element={<Analysis darkMode={darkMode} />} />
-            <Route path="setting" element={<Setting darkMode={darkMode} setDarkMode={setDarkMode} />} />
+    <Router>
+      <Routes>
+        {/* Public routes */}
+        <Route element={<PublicRoute />}>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+        </Route>
+
+        {/* Private routes */}
+        <Route element={<PrivateRoute />}>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="transactions" element={<Transactions />} />
+            <Route path="analysis" element={<Analysis />} />
+            <Route path="setting" element={<Setting />} />
           </Route>
-        </Routes>
-      </Router>
-    </div>
+        </Route>
+
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to={isAuthenticated() ? "/" : "/login"} />} />
+      </Routes>
+    </Router>
   );
 }
 

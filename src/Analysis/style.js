@@ -758,10 +758,16 @@ export const Wrapper = styled.div`
             box-sizing: border-box;
             padding: 1.5rem !important;
         }
+        .range-warning {
+            color: #ffcc00;
+            font-size: 13px;
+            margin-top: 6px;
+            font-style: italic;
+        }
 
         .chart-wrapper {
             height: 100% !important; /* adjust as needed */
-            width: 100% !important;  /* adjust as needed */
+            width: 100% !important; /* adjust as needed */
         }
 
         .pie-row {
@@ -779,11 +785,40 @@ export const Wrapper = styled.div`
         .category-legend {
             text-align: left;
             align-self: flex-start;
-            padding-right:20px;
+            padding-right: 20px;
         }
 
         .legend-item {
             font-size: 1rem !important;
+        }
+    }
+
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(60, 120, 180, 0.15);
+        backdrop-filter: blur(6px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 99999;
+    }
+
+    .loading-container {
+        width: 200px;
+        height: 200px;
+
+        @media (max-width: 768px) {
+            width: 150px;
+            height: 150px;
+        }
+
+        @media (max-width: 480px) {
+            width: 120px;
+            height: 120px;
         }
     }
 `;

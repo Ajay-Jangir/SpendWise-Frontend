@@ -1,9 +1,11 @@
-// AnalysisPage/index.jsx
 import { format, isWithinInterval, parseISO } from "date-fns";
 import { useMemo, useState, useEffect } from "react";
 import Select from 'react-select';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import axiosInstance from "../axiosInstance";
+import Loading from '../utilities/Loading.json';
+import Lottie from 'lottie-react';
 import {
     Cell,
     Pie,
@@ -13,39 +15,6 @@ import {
 } from "recharts";
 import { Wrapper } from "./style";
 
-const dummyTransactions = [
-    { date: '2025-07-01', description: 'Monthly Salary', category: 'Job', type: 'income', amount: 55340.75 },
-    { date: '2025-02-03', description: 'Grocery Shopping at Big Bazaar', category: 'Groceries', type: 'expense', amount: 3278.90 },
-    { date: '2025-07-14', description: 'Movie Night - PVR Cinemas', category: 'Entertainment', type: 'expense', amount: 9534.25 },
-    { date: '2025-07-07', description: 'Freelance Project Payment', category: 'Freelancing', type: 'income', amount: 12145.60 },
-    { date: '2025-07-05', description: 'House Rent for April', category: 'Housing', type: 'expense', amount: 15037.00 },
-    { date: '2025-05-12', description: 'Electricity and Water Bill', category: 'Utilities', type: 'expense', amount: 29178.22 },
-    { date: '2025-07-10', description: 'Cab to Airport - Ola', category: 'Transport', type: 'expense', amount: 7832.15 },
-    { date: '2025-08-15', description: 'Dinner at The Leela Palace', category: 'Food', type: 'expense', amount: 41065.99 },
-    { date: '2025-07-10', description: 'Amazon Festival Sale - Shoes', category: 'Shopping', type: 'income', amount: 42420.48 },
-    { date: '2025-07-18', description: 'Groceries - Reliance Fresh', category: 'Groceries', type: 'expense', amount: 26440.50 },
-    { date: '2025-07-20', description: 'Grocery Shopping at Big Bazaar Grocery Shopping at Big Bazaar Grocery Shopping at BGrocery Shopping at Big Bazaar Grocery Shopping at Big Bazaar Grocery Shopping at Big Bazaar', category: 'Entertainment', type: 'expense', amount: 1523.35 },
-    { date: '2025-07-22', description: 'Mobile Recharge - Airtel', category: 'Utilities', type: 'expense', amount: 29988.10 },
-    { date: '2025-07-25', description: 'Bought Monthly Medicine', category: 'Health', type: 'expense', amount: 1.45 },
-    { date: '2025-08-30', description: 'Friend’s Wedding Gift', category: 'Personal', type: 'expense', amount: 3187.77 },
-    { date: '2025-07-10', description: 'Winter Wear from Myntra', category: 'Shoping', type: 'expense', amount: 38291.63 },
-    { date: '2025-07-10', description: 'Winter Wear from Myntra', category: 'Shoppng', type: 'expense', amount: 38291.63 },
-    { date: '2025-07-10', description: 'Winter Wear from Myntra', category: 'hoping', type: 'expense', amount: 38291.63 },
-    { date: '2025-07-10', description: 'Winter Wear from Myntra', category: 'hopping', type: 'expense', amount: 38291.63 },
-    { date: '2025-07-10', description: 'Winter Wear from Myntra', category: 'Shoppg', type: 'expense', amount: 38291.63 },
-    { date: '2025-07-10', description: 'Winter Wear from Myntra', category: 'Shopping', type: 'expense', amount: 38291.63 },
-    { date: '2025-07-10', description: 'Winter Wear from Myntra', category: 'Shopping', type: 'expense', amount: 38291.63 },
-    { date: '2025-07-10', description: 'Winter Wear from Myntra', category: 'Shog', type: 'expense', amount: 38291.63 },
-    { date: '2025-07-10', description: 'Winter Wear from Myntra', category: 'Shopping', type: 'expense', amount: 38291.63 },
-    { date: '2025-07-10', description: 'Winter Wear from Myntra', category: 'Shopping', type: 'expense', amount: 38291.63 },
-    { date: '2025-07-10', description: 'Winter Wear from Myntra', category: 'Shg', type: 'expense', amount: 38291.63 },
-    { date: '2025-07-10', description: 'Winter Wear from Myntra', category: 'Shoppig', type: 'expense', amount: 38291.63 },
-    { date: '2025-07-10', description: 'Winter Wear from Myntra', category: 'Shing', type: 'expense', amount: 38291.63 },
-    { date: '2025-12-27', description: 'Payment from Fiverr Client', category: 'Freelancing', type: 'income', amount: 8089.80 },
-    { date: '2025-07-28', description: 'Payment from Fiverr Client', category: 'Freelancing', type: 'income', amount: 8123.90 }
-];
-
-
 const COLORS = [
     '#FF5733', '#0ba3fb', '#8D33FF', '#33FF57', '#FFC300',
     '#FF33A1', '#00D1FF', '#FF9F1C', '#2EC4B6', '#7F00FF'
@@ -53,18 +22,10 @@ const COLORS = [
 
 const formatINR = (amount) => {
     const absAmount = Math.abs(amount);
-
-    if (absAmount >= 1e7)
-        return `${amount < 0 ? "-₹" : "₹"} ${(absAmount / 1e7).toFixed(2)} Cr`;
-
-    if (absAmount >= 1e5)
-        return `${amount < 0 ? "-₹" : "₹"} ${(absAmount / 1e5).toFixed(2)} L`;
-
-    return `${amount < 0 ? "-₹" : "₹"} ${absAmount.toLocaleString("en-IN", {
-        maximumFractionDigits: 2,
-    })}`;
+    if (absAmount >= 1e7) return `${amount < 0 ? "-\u20B9" : "\u20B9"} ${(absAmount / 1e7).toFixed(2)} Cr`;
+    if (absAmount >= 1e5) return `${amount < 0 ? "-\u20B9" : "\u20B9"} ${(absAmount / 1e5).toFixed(2)} L`;
+    return `${amount < 0 ? "-\u20B9" : "\u20B9"} ${absAmount.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
 };
-;
 
 const selectOptions = [
     { value: 'thisMonth', label: 'This Month' },
@@ -75,23 +36,23 @@ const selectOptions = [
 
 const generateMonthOptions = () => {
     const now = new Date();
-    const start = new Date(now.getFullYear(), 0, 1); // Jan 1st
+    const start = new Date(now.getFullYear(), 0, 1);
     const months = [];
-
     while (start <= now) {
         const value = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-01`;
         const label = format(start, 'MMMM yyyy');
         months.push({ value, label });
         start.setMonth(start.getMonth() + 1);
     }
-
     return months;
 };
 
-
 const AnalysisPage = () => {
     const now = new Date();
+    const [transactions, setTransactions] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [filterMode, setFilterMode] = useState("thisMonth");
+    const [hasComparedOnce, setHasComparedOnce] = useState(false);
     const [compare, setCompare] = useState(false);
     const [showExportModal, setShowExportModal] = useState(false);
     const [exportOption, setExportOption] = useState("thisMonth");
@@ -100,12 +61,11 @@ const AnalysisPage = () => {
     const [exportRange, setExportRange] = useState({
         from: `${now.getFullYear()}-01-01`,
         to: now.toISOString().split('T')[0]
-    })
+    });
 
     const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1);
     const prevPrevMonth = new Date(now.getFullYear(), now.getMonth() - 2);
     const formatMonth = (d) => d.toISOString().slice(0, 7);
-
     const [compareMonths, setCompareMonths] = useState([
         formatMonth(prevMonth),
         formatMonth(prevPrevMonth)
@@ -117,14 +77,26 @@ const AnalysisPage = () => {
     });
 
     useEffect(() => {
-        const checkMobile = () => {
-            setIsMobile(window.innerWidth <= 768);
-        };
-
-        checkMobile(); // Initial check
+        const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+        checkMobile();
         window.addEventListener('resize', checkMobile);
-
         return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
+    useEffect(() => {
+        const fetchTransactions = async () => {
+            try {
+                setLoading(true);
+                const res = await axiosInstance.get('/api/spend');
+                setTransactions(res.data);
+            } catch (err) {
+                console.error("Failed to load transactions", err);
+                toast.error("Failed to load transactions");
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchTransactions();
     }, []);
 
     const getFilteredTransactions = (filterKey) => {
@@ -135,20 +107,18 @@ const AnalysisPage = () => {
             last6Months: Array.from({ length: 6 }, (_, i) =>
                 format(new Date(now.getFullYear(), now.getMonth() - i), "yyyy-MM")
             ),
-            custom: dummyTransactions.filter((tx) =>
+            custom: transactions.filter((tx) =>
                 isWithinInterval(parseISO(tx.date), {
                     start: parseISO(customRange.from),
                     end: parseISO(customRange.to),
                 })
             ),
         };
-
         if (filterKey === "custom") return range.custom;
-
-        return dummyTransactions.filter((tx) =>
+        return transactions.filter((tx) =>
             range[filterKey].includes(tx.date.slice(0, 7))
         );
-    };
+    }
 
     const generateSummary = (transactions) => {
         const income = transactions.filter((t) => t.type === "income").reduce((a, b) => a + b.amount, 0);
@@ -163,48 +133,72 @@ const AnalysisPage = () => {
     };
 
     const filteredData = useMemo(() => {
+        if (!transactions.length) return [];
+
         if (filterMode === "custom") {
             const fromMonth = customRange.from.slice(0, 7);
             const toMonth = customRange.to.slice(0, 7);
             if (customRange.from > customRange.to) return [];
-            const data = dummyTransactions.filter((tx) => {
+            const data = transactions.filter((tx) => {
                 const txMonth = tx.date.slice(0, 7);
                 return txMonth >= fromMonth && txMonth <= toMonth;
             });
-
             return data;
         }
-
         return getFilteredTransactions(filterMode);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filterMode, customRange]);
+    }, [filterMode, customRange, transactions]);
+
+
     const currentSummary = useMemo(() => generateSummary(filteredData), [filteredData]);
 
     const comparisonSummaries = useMemo(() => {
         if (!compare) return null;
         return compareMonths.map((month) => {
-            const monthData = dummyTransactions.filter((t) => t.date.startsWith(month));
+            const monthData = transactions.filter((t) => t.date.startsWith(month));
             return { month, ...generateSummary(monthData) };
         });
-    }, [compare, compareMonths]);
+    }, [compare, compareMonths, transactions]);
 
-    const handleDummyExport = () => {
+    const handleExportPDF = async () => {
         try {
-            const content = "Dummy SpendWise Report\n\nExported at: " + new Date().toLocaleString();
-            const blob = new Blob([content], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = "DummySpendWiseReport.txt";
-            link.click();
-            URL.revokeObjectURL(url);
+            setLoading(true);
 
-            toast.success("Report Exported Successfully");
+            const params = {};
+            let filename = "SpendWise_Report";
+
+            if (exportOption === "custom") {
+                params.from = exportRange.from;
+                params.to = exportRange.to;
+                filename += `_${exportRange.from}_to_${exportRange.to}`;
+            } else {
+                filename += `_${exportOption.replace(/([A-Z])/g, ' $1').trim().replace(/\s+/g, '_')}`;
+            }
+
+            const res = await axiosInstance.get('/api/export/pdf', {
+                responseType: 'blob',
+                params,
+            });
+
+            const blob = new Blob([res.data], { type: 'application/pdf' });
+            const url = window.URL.createObjectURL(blob);
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `${filename}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+
+            toast.success("PDF exported successfully");
         } catch (error) {
-            toast.error("Failed to export report.");
-            console.error(error);
+            console.error("Export failed:", error);
+            toast.error("Failed to export PDF. Please try again.");
+        } finally {
+            setLoading(false);
+            setShowExportModal(false);
         }
-        setShowExportModal(false);
     };
 
 
@@ -212,6 +206,13 @@ const AnalysisPage = () => {
 
     return (
         <Wrapper>
+            {loading && (
+                <div className="loading-overlay">
+                    <div className="loading-container">
+                        <Lottie animationData={Loading} loop autoplay />
+                    </div>
+                </div>
+            )}
             <div className="header-row">
                 <h2>Spending Analysis</h2>
                 <div className="actions">
@@ -235,8 +236,13 @@ const AnalysisPage = () => {
                             onClick={() => {
                                 const toggled = !compare;
                                 setCompare(toggled);
-
                                 if (toggled) {
+                                    // Only set current month if first time ever comparing
+                                    if (!hasComparedOnce) {
+                                        const currentMonth = format(new Date(), 'yyyy-MM');
+                                        setCompareMonths([currentMonth, currentMonth]);
+                                        setHasComparedOnce(true);
+                                    }
                                     if (filterMode === "custom") {
                                         setPreviousFilterMode("custom");
                                         setFilterMode("thisMonth");
@@ -390,7 +396,7 @@ const AnalysisPage = () => {
                                     value: compareMonths[0],
                                     label: format(new Date(`${compareMonths[0]}-01`), 'MMMM yyyy')
                                 }}
-                                options={[...new Set(dummyTransactions.map(tx => tx.date.slice(0, 7)))].map(m => ({
+                                options={[...new Set(transactions.map(tx => tx.date.slice(0, 7)))].map(m => ({
                                     value: m,
                                     label: format(new Date(`${m}-01`), 'MMMM yyyy')
                                 }))}
@@ -410,7 +416,7 @@ const AnalysisPage = () => {
                                     value: compareMonths[1],
                                     label: format(new Date(`${compareMonths[1]}-01`), 'MMMM yyyy')
                                 }}
-                                options={[...new Set(dummyTransactions.map(tx => tx.date.slice(0, 7)))].map(m => ({
+                                options={[...new Set(transactions.map(tx => tx.date.slice(0, 7)))].map(m => ({
                                     value: m,
                                     label: format(new Date(`${m}-01`), 'MMMM yyyy')
                                 }))}
@@ -458,7 +464,7 @@ const AnalysisPage = () => {
                                         <h5>Spending by Category</h5>
                                         <div className="pie-row">
                                             <div className="chart-wrapper">
-                                                <ResponsiveContainer width="100%" height={200}>
+                                                <ResponsiveContainer width="100%" height={270}>
                                                     <PieChart>
                                                         <Pie
                                                             data={data.pieChartData}
@@ -526,35 +532,103 @@ const AnalysisPage = () => {
 
                         {exportOption === "custom" && (
                             <div className="custom-range">
-                                <label>From:
+                                <label>
+                                    From:
                                     <input
                                         type="date"
+                                        inputMode="numeric"
+                                        pattern="\d{4}-\d{2}-\d{2}"
                                         className="custom-date-input"
                                         value={exportRange.from}
-                                        max={exportRange.to}
-                                        onChange={(e) =>
-                                            setExportRange({ ...exportRange, from: e.target.value })
-                                        }
+                                        max={(() => {
+                                            const fromDate = new Date(exportRange.from);
+                                            if (isNaN(fromDate)) return "";
+                                            const maxTo = new Date(fromDate);
+                                            maxTo.setFullYear(maxTo.getFullYear() + 1);
+                                            const today = new Date();
+                                            return (maxTo > today ? today : maxTo).toISOString().split("T")[0];
+                                        })()}
+                                        onChange={(e) => {
+                                            setExportRange(prev => ({ ...prev, from: e.target.value }));
+                                        }}
+                                        onBlur={(e) => {
+                                            const newFrom = e.target.value;
+                                            const newFromDate = new Date(newFrom);
+                                            if (isNaN(newFromDate)) {
+                                                toast.error("Invalid From date");
+                                                e.target.value = exportRange.from;
+                                                return;
+                                            }
 
+                                            const maxToDate = new Date(newFromDate);
+                                            maxToDate.setFullYear(newFromDate.getFullYear() + 1);
+                                            const today = new Date();
+                                            const safeMaxTo = maxToDate > today ? today : maxToDate;
+
+                                            const currentToDate = new Date(exportRange.to);
+                                            const adjustedTo = isNaN(currentToDate) || currentToDate > safeMaxTo
+                                                ? safeMaxTo.toISOString().split("T")[0]
+                                                : exportRange.to;
+
+                                            setExportRange({
+                                                from: newFrom,
+                                                to: adjustedTo,
+                                            });
+                                        }}
                                     />
+
                                 </label>
-                                <label>To:
+
+                                <label>
+                                    To:
                                     <input
                                         type="date"
+                                        inputMode="numeric"
+                                        pattern="\d{4}-\d{2}-\d{2}"
                                         className="custom-date-input"
                                         value={exportRange.to}
-                                        min={exportRange.from}
                                         max={new Date().toISOString().split("T")[0]}
-                                        onChange={(e) =>
-                                            setExportRange({ ...exportRange, to: e.target.value })
-                                        }
+                                        min={(() => {
+                                            const toDate = new Date(exportRange.to);
+                                            if (isNaN(toDate)) return "";
+                                            const minFrom = new Date(toDate);
+                                            minFrom.setFullYear(minFrom.getFullYear() - 1);
+                                            return minFrom.toISOString().split("T")[0];
+                                        })()}
+                                        onChange={(e) => {
+                                            setExportRange(prev => ({ ...prev, to: e.target.value }));
+                                        }}
+                                        onBlur={(e) => {
+                                            const newTo = e.target.value;
+                                            const newToDate = new Date(newTo);
+                                            if (isNaN(newToDate)) {
+                                                toast.error("Invalid To date");
+                                                e.target.value = exportRange.to;
+                                                return;
+                                            }
+
+                                            const minFromDate = new Date(newToDate);
+                                            minFromDate.setFullYear(newToDate.getFullYear() - 1);
+                                            const currentFromDate = new Date(exportRange.from);
+                                            const adjustedFrom = isNaN(currentFromDate) || currentFromDate < minFromDate
+                                                ? minFromDate.toISOString().split("T")[0]
+                                                : exportRange.from;
+
+                                            setExportRange({
+                                                from: adjustedFrom,
+                                                to: newTo,
+                                            });
+                                        }}
                                     />
                                 </label>
+
+                                <div className="range-warning">
+                                    ⚠️ Maximum export duration is 1 year.
+                                </div>
                             </div>
                         )}
-
                         <div className="modal-actions">
-                            <button className="export-btn primary" onClick={handleDummyExport}>
+                            <button className="export-btn primary" onClick={handleExportPDF}>
                                 Export
                             </button>
                             <button className="export-btn cancel" onClick={() => setShowExportModal(false)}>

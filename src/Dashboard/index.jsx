@@ -1,4 +1,8 @@
-import { useMemo, useState, useEffect } from 'react';
+/* eslint-disable no-unused-vars */
+import Lottie from 'lottie-react';
+import { useEffect, useMemo, useState } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import {
     Area,
     AreaChart,
@@ -12,7 +16,10 @@ import {
     XAxis,
     YAxis
 } from 'recharts';
+import axiosInstance from '../axiosInstance'; // adjust the path if needed
+import Loading from '../utilities/Loading.json';
 import Wrapper from './style';
+
 
 const formatINR = (amount) => {
     const absAmount = Math.abs(amount);
@@ -27,41 +34,6 @@ const formatINR = (amount) => {
         maximumFractionDigits: 2,
     })}`;
 };
-
-
-
-const dummyTransactions = [
-    { date: '2025-07-01', description: 'Monthly Salary', category: 'Job', type: 'income', amount: 55340.75 },
-    { date: '2025-02-03', description: 'Grocery Shopping at Big Bazaar', category: 'Groceries', type: 'expense', amount: 3278.90 },
-    { date: '2025-07-14', description: 'Movie Night - PVR Cinemas', category: 'Entertainment', type: 'expense', amount: 9534.25 },
-    { date: '2025-07-07', description: 'Freelance Project Payment', category: 'Freelancing', type: 'income', amount: 12145.60 },
-    { date: '2025-07-05', description: 'House Rent for April', category: 'Housing', type: 'expense', amount: 15037.00 },
-    { date: '2025-05-12', description: 'Electricity and Water Bill', category: 'Utilities', type: 'expense', amount: 29178.22 },
-    { date: '2025-07-10', description: 'Cab to Airport - Ola', category: 'Transport', type: 'expense', amount: 7832.15 },
-    { date: '2025-08-15', description: 'Dinner at The Leela Palace', category: 'Food', type: 'expense', amount: 41065.99 },
-    { date: '2025-07-10', description: 'Amazon Festival Sale - Shoes', category: 'Shopping', type: 'income', amount: 42420.48 },
-    { date: '2025-07-18', description: 'Groceries - Reliance Fresh', category: 'Groceries', type: 'expense', amount: 26440.50 },
-    { date: '2025-07-20', description: 'Grocery Shopping at Big Bazaar Grocery Shopping at Big Bazaar Grocery Shopping at BGrocery Shopping at Big Bazaar Grocery Shopping at Big Bazaar Grocery Shopping at Big Bazaar', category: 'Entertainment', type: 'expense', amount: 1523.35 },
-    { date: '2025-07-22', description: 'Mobile Recharge - Airtel', category: 'Utilities', type: 'expense', amount: 29988.10 },
-    { date: '2025-07-25', description: 'Bought Monthly Medicine', category: 'Health', type: 'expense', amount: 1.45 },
-    { date: '2025-08-30', description: 'Friend’s Wedding Gift', category: 'Personal', type: 'expense', amount: 3187.77 },
-    { date: '2025-07-10', description: 'Winter Wear from Myntra', category: 'Shoping', type: 'expense', amount: 38291.63 },
-    { date: '2025-07-10', description: 'Winter Wear from Myntra', category: 'Shoppng', type: 'expense', amount: 38291.63 },
-    { date: '2025-07-10', description: 'Winter Wear from Myntra', category: 'hoping', type: 'expense', amount: 38291.63 },
-    { date: '2025-07-10', description: 'Winter Wear from Myntra', category: 'hopping', type: 'expense', amount: 38291.63 },
-    { date: '2025-07-10', description: 'Winter Wear from Myntra', category: 'Shoppg', type: 'expense', amount: 38291.63 },
-    { date: '2025-07-10', description: 'Winter Wear from Myntra', category: 'Shopping', type: 'expense', amount: 38291.63 },
-    { date: '2025-07-10', description: 'Winter Wear from Myntra', category: 'Shopping', type: 'expense', amount: 38291.63 },
-    { date: '2025-07-10', description: 'Winter Wear from Myntra', category: 'Shog', type: 'expense', amount: 38291.63 },
-    { date: '2025-07-10', description: 'Winter Wear from Myntra', category: 'Shopping', type: 'expense', amount: 38291.63 },
-    { date: '2025-07-10', description: 'Winter Wear from Myntra', category: 'Shopping', type: 'expense', amount: 38291.63 },
-    { date: '2025-07-10', description: 'Winter Wear from Myntra', category: 'Shg', type: 'expense', amount: 38291.63 },
-    { date: '2025-07-10', description: 'Winter Wear from Myntra', category: 'Shoppig', type: 'expense', amount: 38291.63 },
-    { date: '2025-07-10', description: 'Winter Wear from Myntra', category: 'Shing', type: 'expense', amount: 38291.63 },
-    { date: '2025-12-27', description: 'Payment from Fiverr Client', category: 'Freelancing', type: 'income', amount: 8089.80 },
-    { date: '2025-07-28', description: 'Payment from Fiverr Client', category: 'Freelancing', type: 'income', amount: 8123.90 }
-];
-
 
 
 const COLORS = [
@@ -83,10 +55,30 @@ const Dashboard = () => {
     const [isMobile, setIsMobile] = useState(false);
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
+    const [transactions, setTransactions] = useState([]);
+    const [loading, setLoading] = useState(true);
     const monthYearLabel = new Date().toLocaleString('default', {
         month: 'long',
         year: 'numeric'
     });
+
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true); // 🟡 Start loading
+            try {
+                const res = await axiosInstance.get('/api/spend');
+                const mapped = res.data.map(t => ({ ...t, id: t._id }));
+                setTransactions(mapped);
+            } catch (err) {
+                toast.error('Failed to fetch dashboard data');
+            } finally {
+                setLoading(false); // ✅ Stop loading
+            }
+        };
+        fetchData();
+    }, []);
+
+
 
     useEffect(() => {
         const checkMobile = () => {
@@ -100,13 +92,13 @@ const Dashboard = () => {
     }, []);
 
     const monthlySummery = useMemo(() => {
-        const income = dummyTransactions.filter(
+        const income = transactions.filter(
             t =>
                 t.type === 'income' &&
                 new Date(t.date).getMonth() === currentMonth &&
                 new Date(t.date).getFullYear() === currentYear
         );
-        const expense = dummyTransactions.filter(
+        const expense = transactions.filter(
             t =>
                 t.type === 'expense' &&
                 new Date(t.date).getMonth() === currentMonth &&
@@ -125,7 +117,8 @@ const Dashboard = () => {
         const topCategory = Object.entries(categorySpend).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A';
 
         return { totalIncome, totalExpense, balance, categorySpend, topCategory };
-    }, [currentMonth, currentYear]);
+    }, [transactions, currentMonth, currentYear]);
+
 
     const pieData = Object.entries(monthlySummery.categorySpend).map(([key, value]) => ({
         name: key,
@@ -133,10 +126,10 @@ const Dashboard = () => {
     }));
 
     const monthlyData = Array.from({ length: 12 }, (_, i) => {
-        const income = dummyTransactions
+        const income = transactions
             .filter(t => t.type === 'income' && new Date(t.date).getMonth() === i && new Date(t.date).getFullYear() === currentYear)
             .reduce((acc, curr) => acc + curr.amount, 0);
-        const expense = dummyTransactions
+        const expense = transactions
             .filter(t => t.type === 'expense' && new Date(t.date).getMonth() === i && new Date(t.date).getFullYear() === currentYear)
             .reduce((acc, curr) => acc + curr.amount, 0);
         return {
@@ -147,17 +140,19 @@ const Dashboard = () => {
     });
 
     const yearlySummary = useMemo(() => {
-        const income = dummyTransactions.filter(
+        const income = transactions.filter(
             t => t.type === 'income' && new Date(t.date).getFullYear() === currentYear
         );
-        const expense = dummyTransactions.filter(
+        const expense = transactions.filter(
             t => t.type === 'expense' && new Date(t.date).getFullYear() === currentYear
         );
 
         const totalIncome = income.reduce((acc, curr) => acc + curr.amount, 0);
         const totalExpense = expense.reduce((acc, curr) => acc + curr.amount, 0);
+
         return { totalIncome, totalExpense };
-    }, [currentYear]);
+    }, [transactions, currentYear]);
+
 
 
     // Smooth Y-axis ticks calculation
@@ -175,7 +170,7 @@ const Dashboard = () => {
         : Array.from({ length: Math.floor(maxY / tickInterval) + 1 }, (_, i) => i * tickInterval);
 
 
-    const latestTransactions = [...dummyTransactions]
+    const latestTransactions = [...transactions]
         .filter(t => new Date(t.date).getFullYear() === currentYear && new Date(t.date).getMonth() === currentMonth)
         .sort((a, b) => new Date(b.date) - new Date(a.date))
         .slice(0, 5);
@@ -186,6 +181,13 @@ const Dashboard = () => {
 
     return (
         <Wrapper>
+            {loading && (
+                <div className="loading-overlay">
+                    <div className="loading-container">
+                        <Lottie animationData={Loading} loop autoplay />
+                    </div>
+                </div>
+            )}
             <div className="summary">
                 <div className="box">
                     <span className="label">Balance ({monthYearLabel})</span>
@@ -365,6 +367,20 @@ const Dashboard = () => {
 
                 </table>
             </div>
+
+            <ToastContainer
+                position="top-right"
+                autoClose={2500}
+                hideProgressBar={false}
+                newestOnTop
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="dark"
+                limit={3}
+            />
         </Wrapper>
     );
 };

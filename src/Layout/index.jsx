@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import Header from '../Header';
 import Footer from '../Footer';
+import Header from '../Header';
 import Menu from '../Menu';
 import { Wrapper } from './style';
 

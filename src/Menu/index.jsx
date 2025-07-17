@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Wrapper } from "./style";
 import { FaHome, FaExchangeAlt, FaChartBar, FaCog, FaSignOutAlt } from "react-icons/fa";
@@ -6,6 +6,7 @@ import { FaHome, FaExchangeAlt, FaChartBar, FaCog, FaSignOutAlt } from "react-ic
 const Menu = ({ menuOpen, setMenuOpen }) => {
     const navigate = useNavigate();
     const location = useLocation();
+    const [loggingOut, setLoggingOut] = useState(false);
 
     const isActive = (path) => location.pathname === path;
 
@@ -14,6 +15,17 @@ const Menu = ({ menuOpen, setMenuOpen }) => {
         if (window.innerWidth <= 768) {
             setMenuOpen(false);
         }
+    };
+
+    // Logout button component or function
+    const handleLogout = () => {
+        if (loggingOut) return; // prevent multiple triggers
+        setLoggingOut(true);
+
+        setTimeout(() => {
+            localStorage.removeItem("spendwise_token");
+            window.location.href = "/login";
+        }, 1000); // simulate delay (optional)
     };
 
     return (
@@ -40,12 +52,12 @@ const Menu = ({ menuOpen, setMenuOpen }) => {
                 </div>
             </div>
 
-            <div className="logout" onClick={() => {
-                console.log("Logout clicked");
-                if (window.innerWidth <= 768) setMenuOpen(false);
-            }}>
+            <div
+                className={`logout ${loggingOut ? "disabled" : ""}`}
+                onClick={!loggingOut ? handleLogout : undefined}
+            >
                 <span className="icon"><FaSignOutAlt /></span>
-                <span>Logout</span>
+                <span>{loggingOut ? "Logging out..." : "Logout"}</span>
             </div>
         </Wrapper>
     );

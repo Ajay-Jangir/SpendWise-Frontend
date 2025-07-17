@@ -2,13 +2,12 @@ import styled from 'styled-components';
 
 export const Wrapper = styled.div`
     width: 240px;
-    background-color: #1c1e26; /* Unified color */
+    background-color: #1c1e26;
     color: #fff;
     display: flex;
     flex-direction: column;
     padding: 1rem;
     box-sizing: border-box;
-    height: calc(100vh - 64px);
     flex-shrink: 0;
 
     .nav {
@@ -57,10 +56,22 @@ export const Wrapper = styled.div`
         border-radius: 0.75rem;
         cursor: pointer;
         color: #f87171;
-        transition: background 0.2s;
+        transition:
+            background 0.2s,
+            opacity 0.2s;
 
         &:hover {
             background-color: #3b3f50;
+        }
+
+        &.disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+            pointer-events: none;
+
+            &:hover {
+                background-color: transparent; /* no hover on disabled */
+            }
         }
 
         .icon {
