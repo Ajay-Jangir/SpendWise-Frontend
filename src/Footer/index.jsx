@@ -18,7 +18,7 @@ const Footer = () => {
                     <a className="footer-support" href="mailto:ajayjangir023@gmail.com">Support</a>
                 </div>
 
-                <div className="footer-right">Built with 💻 by Team SpendWise</div>
+                <div className="footer-right">Track. Spend. Grow. <b>-SpendWise</b></div>
             </footer>
 
             {modalType && (
