@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import Wrapper from './style';
 
 const Footer = () => {
-    const [modalType, setModalType] = useState(null); // "privacy" | "terms" | null
+    const [modalType, setModalType] = useState(null);
 
     const closeModal = () => setModalType(null);
 
