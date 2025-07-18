@@ -1,10 +1,8 @@
-// App.jsx
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import Layout from "./Layout";
 import './App.css';
 
-// Pages
 import Dashboard from "./Dashboard/index";
 import Transactions from "./Transactions/index";
 import Setting from "./Setting/index";
@@ -35,7 +33,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/resetpassword" element={<ForgotPassword />} />
-          <Route path="/resetNewPassword" element={<ResetNewPassword />} />
+          <Route path="/resetNewPassword/:token" element={<ResetNewPassword />} />
         </Route>
 
         {/* Private routes */}
