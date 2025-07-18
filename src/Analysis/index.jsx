@@ -313,7 +313,7 @@ const AnalysisPage = () => {
                         <div className="box">
                             <div className="label">Top Spent Category</div>
                             <div className="value">
-                                {currentSummary.pieChartData.sort((a, b) => b.value - a.value)[0]?.name || "N/A"}
+                                {[...currentSummary.pieChartData].sort((a, b) => b.value - a.value)[0]?.name || "N/A"}
                             </div>
                         </div>
                     </div>
@@ -451,7 +451,7 @@ const AnalysisPage = () => {
                                     <div className="box">
                                         <div className="label">Top Spent Category</div>
                                         <div className="value">
-                                            {data.pieChartData.sort((a, b) => b.value - a.value)[0]?.name || "N/A"}
+                                            {[...data.pieChartData].sort((a, b) => b.value - a.value)[0]?.name || "N/A"}
                                         </div>
                                     </div>
                                 </div>
