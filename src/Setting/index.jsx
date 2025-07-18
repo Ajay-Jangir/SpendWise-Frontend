@@ -1,60 +1,47 @@
+/* eslint-disable no-unused-vars */
 import Lottie from 'lottie-react';
 import { Eye, EyeOff, Pencil, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+import { useOutletContext } from 'react-router-dom';
 import axiosInstance from "../axiosInstance";
 import Loading from '../utilities/Loading.json';
 import { Wrapper } from "./style";
 
 const SettingsPage = () => {
+    const { username, setUsername } = useOutletContext(); // from Layout
+    const [user, setUser] = useState({ email: "" });
+
     const [loading, setLoading] = useState(true);
-    const [user, setUser] = useState({
-        username: "",
-        email: ""
-    });
-
-    useEffect(() => {
-        const fetchUserDetails = async () => {
-            try {
-                const res = await axiosInstance.get("/api/auth/user");
-                const { name, email } = res.data;
-
-                setUser({
-                    username: name,
-                    email: email
-                });
-            } catch (err) {
-                toast.error("Failed to load user details.");
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchUserDetails();
-    }, []);
-
-
-    const [editMode, setEditMode] = useState({
-        username: false,
-        email: false
-    });
-
+    const [editMode, setEditMode] = useState({ username: false, email: false });
     const [loadingField, setLoadingField] = useState(null);
-    const [changePwd, setChangePwd] = useState({
-        current: "",
-        new: "",
-        confirm: ""
-    });
+    const [changePwd, setChangePwd] = useState({ current: "", new: "", confirm: "" });
 
     const [showModal, setShowModal] = useState(false);
     const [showCurrentPwd, setShowCurrentPwd] = useState(false);
     const [showNewPwd, setShowNewPwd] = useState(false);
     const [showConfirmPwd, setShowConfirmPwd] = useState(false);
 
+    useEffect(() => {
+        const fetchEmail = async () => {
+            try {
+                const res = await axiosInstance.get("/api/auth/user");
+                setUser({ email: res.data.email });
+            } catch (err) {
+                toast.error("Failed to load user data.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchEmail();
+    }, []);
+
     const handleUserFieldSave = async (field) => {
-        if (!user[field].trim()) {
+        const value = field === "username" ? username.trim() : user.email.trim().toLowerCase();
+
+        if (!value) {
             toast.error(`Please enter a valid ${field}.`);
             return;
         }
@@ -62,15 +49,15 @@ const SettingsPage = () => {
         setLoadingField(field);
 
         try {
-            setLoading(true)
-            const payload = field === 'username'
-                ? { name: user.username.trim() }
-                : { email: user.email.trim().toLowerCase() };
+            setLoading(true);
+            const payload = field === "username" ? { name: value } : { email: value };
+            const res = await axiosInstance.put("/api/auth/edit", payload);
 
-            await axiosInstance.put("/api/auth/edit", payload);
-
-            toast.success(`${field === 'username' ? 'Username' : 'Email'} updated successfully.`);
+            toast.success(`${field === "username" ? "Username" : "Email"} updated successfully.`);
             setEditMode(prev => ({ ...prev, [field]: false }));
+
+            if (field === "username") setUsername(value);
+            else setUser(prev => ({ ...prev, email: value }));
         } catch (err) {
             if (err.response?.status === 409) {
                 toast.error("Email is already in use.");
@@ -79,7 +66,7 @@ const SettingsPage = () => {
             }
         } finally {
             setLoadingField(null);
-            setLoading(false)
+            setLoading(false);
         }
     };
 
@@ -104,7 +91,7 @@ const SettingsPage = () => {
         setLoadingField("password");
 
         try {
-            setLoading(true)
+            setLoading(true);
             const res = await axiosInstance.put("/api/auth/edit", {
                 currentPassword: current,
                 password: newPwd
@@ -128,11 +115,9 @@ const SettingsPage = () => {
             }
         } finally {
             setLoadingField(null);
-            setLoading(false)
+            setLoading(false);
         }
     };
-
-
 
     return (
         <Wrapper>
@@ -143,6 +128,7 @@ const SettingsPage = () => {
                     </div>
                 </div>
             )}
+
             <div className="settings-page">
                 <h2 className="page-title">Account Settings</h2>
 
@@ -150,14 +136,15 @@ const SettingsPage = () => {
                     <h3 className="section-title">User Information</h3>
                     <div className="userInfo-container">
                         <div className="user-fields">
+                            {/* Username */}
                             <div className="input-row">
                                 <label>Username</label>
                                 <div className="input-group">
                                     <input
                                         type="text"
-                                        value={user.username}
+                                        value={username}
                                         disabled={!editMode.username}
-                                        onChange={(e) => setUser({ ...user, username: e.target.value })}
+                                        onChange={(e) => setUsername(e.target.value)}
                                     />
                                     {editMode.username ? (
                                         <button
@@ -178,6 +165,7 @@ const SettingsPage = () => {
                                 </div>
                             </div>
 
+                            {/* Email */}
                             <div className="input-row">
                                 <label>Email</label>
                                 <div className="input-group">
@@ -199,7 +187,7 @@ const SettingsPage = () => {
                                         <button
                                             className="icon-btn edit"
                                             onClick={() => setEditMode({ username: false, email: true })}
-                                            disabled={editMode.username} // prevent both from being edited
+                                            disabled={editMode.username}
                                         >
                                             <Pencil size={16} />
                                         </button>
@@ -209,7 +197,7 @@ const SettingsPage = () => {
                         </div>
 
                         <div className="user-avatar">
-                            {user.username
+                            {username
                                 .split(/[\s._-]+/)
                                 .slice(0, 2)
                                 .map(word => word[0]?.toUpperCase())
@@ -218,12 +206,14 @@ const SettingsPage = () => {
                     </div>
                 </div>
 
+                {/* Password Section */}
                 <div className="pswsection">
                     <h3 className="section-title">Password</h3>
                     <button className="reset-btn" onClick={() => setShowModal(true)}>Reset Password</button>
                 </div>
             </div>
 
+            {/* Password Modal */}
             {showModal && (
                 <div className="modal-backdrop">
                     <div className="modal-content">
@@ -284,14 +274,12 @@ const SettingsPage = () => {
                 hideProgressBar={false}
                 newestOnTop
                 closeOnClick
-                rtl={false}
                 pauseOnFocusLoss
                 draggable
                 pauseOnHover
                 theme="dark"
                 limit={3}
             />
-
         </Wrapper>
     );
 };

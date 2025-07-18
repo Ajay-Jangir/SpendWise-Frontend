@@ -136,11 +136,11 @@ const Register = ({ onRegistered }) => {
                 </div>
             )}
 
-            <div className="login-left">
+            <div className="register-left">
                 <div className="logo-top">
                     <img src={SpendWiseImage} alt="SpendWise Logo" />
                 </div>
-                <div className="login-box">
+                <div className="register-box">
                     <h2>Create Account</h2>
                     <p className="subtext">Join SpendWise to track and manage your finances.</p>
                     <form onSubmit={handleSubmit}>
@@ -186,21 +186,18 @@ const Register = ({ onRegistered }) => {
                                 {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
                             </span>
                         </div>
-                        <button type="submit" className="login-btn" disabled={loading}>
+                        <button type="submit" className="register-btn" disabled={loading}>
                             {loading ? 'Registering...' : 'Register'}
                         </button>
                     </form>
-                    <div className="login-options">
+                    <div className="register-options">
                         <button className="link-btn" onClick={() => navigate('/login')}>
                             Back to Login
-                        </button>
-                        <button className="link-btn" onClick={() => navigate('/forgot')}>
-                            Forgot Password?
                         </button>
                     </div>
                 </div>
             </div>
-            <div className="login-right">
+            <div className="register-right">
                 <img src={SpendWiseImage} alt="SpendWise" />
             </div>
 

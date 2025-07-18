@@ -94,7 +94,7 @@ export const Wrapper = styled.div`
         border: none;
         cursor: pointer;
         color: white;
-        background: #00b894;
+        background: #21a2a7;
         font-size: 0.9rem;
         height: 40px;
         transition: background 0.3s ease;
@@ -193,7 +193,7 @@ export const Wrapper = styled.div`
     }
 
     .primary-btn {
-        background-color: #4caf50;
+        background-color: #21a2a7;
         color: white;
         border: none;
         padding: 10px 16px;
@@ -203,7 +203,7 @@ export const Wrapper = styled.div`
     }
 
     .primary-btn:hover {
-        background-color: #43a047;
+        background: linear-gradient(135deg, #21a2a7, #19ddc0ff);
     }
 
     .cancel-btn {

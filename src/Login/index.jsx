@@ -77,7 +77,7 @@ const Login = () => {
                     <img src={SpendWiseImage} alt="SpendWise Logo" />
                 </div>
                 <div className="login-box">
-                    <h2>Welcome Back 👋</h2>
+                    <h2>Welcome Back</h2>
                     <p className="subtext">Login to continue managing your spending</p>
                     <form onSubmit={handleSubmit}>
                         <input
@@ -109,7 +109,7 @@ const Login = () => {
                         <button className="link-btn" onClick={() => navigate('/register')}>
                             Register
                         </button>
-                        <button className="link-btn" onClick={() => navigate('/forgot')}>
+                        <button className="link-btn" onClick={() => navigate('/resetpassword')}>
                             Forgot Password?
                         </button>
                     </div>

@@ -11,6 +11,8 @@ import Setting from "./Setting/index";
 import Analysis from "./Analysis/index";
 import Register from "./Register/index";
 import Login from "./Login/index";
+import ForgotPassword from './ForgotPassword'
+import ResetNewPassword from "./ResetNewPassword";
 
 const isAuthenticated = () => {
   return !!localStorage.getItem('spendwise_token');
@@ -32,6 +34,8 @@ function App() {
         <Route element={<PublicRoute />}>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/resetpassword" element={<ForgotPassword />} />
+          <Route path="/resetNewPassword" element={<ResetNewPassword />} />
         </Route>
 
         {/* Private routes */}

@@ -36,7 +36,7 @@ const Wrapper = styled.div`
         }
 
         .footer-support {
-            color: #00b894;
+            color: #21a2a7;
 
             &:hover {
                 color: #7fdb66ff;
@@ -145,7 +145,7 @@ const Wrapper = styled.div`
             }
 
             .footer-support {
-                color: #00b894;
+                color: #21a2a7;
 
                 &:hover {
                     color: #7fdb66ff;

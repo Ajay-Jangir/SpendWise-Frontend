@@ -34,7 +34,7 @@ export const Wrapper = styled.div`
 
             &.active {
                 background-color: #2a2d3a;
-                color: #00ff99;
+                color: #21a2a7;
             }
 
             .icon {

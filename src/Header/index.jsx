@@ -1,34 +1,19 @@
 // components/Header.jsx
 import { Menu as MenuIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import axiosInstance from '../axiosInstance';
 import Wrapper from './style';
 
-const Header = ({ toggleMenu }) => {
+const Header = ({ toggleMenu, username }) => {
     const navigate = useNavigate();
-    const [fullName, setFullName] = useState('');
 
-    useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                const res = await axiosInstance.get('/api/auth/user');
-                setFullName(res.data?.name || '');
-            } catch (err) {
-                toast.error('Failed to fetch user details');
-                console.error(err);
-            }
-        };
-
-        fetchUser();
-    }, []);
-
-    const initials = fullName
-        .split(" ")
+    const initials = username
+    ? username
+        .split(/\s+/)
         .map(name => name.charAt(0))
+        .slice(0, 2)
         .join("")
-        .toUpperCase();
+        .toUpperCase()
+    : "";
 
     const handleProfileClick = () => {
         navigate("/setting");
@@ -42,19 +27,18 @@ const Header = ({ toggleMenu }) => {
                     <button className="hamburger" onClick={toggleMenu}>
                         <MenuIcon size={24} />
                     </button>
-
                     <h1 className="brand">SpendWise</h1>
                 </div>
 
                 <div className="right-section">
                     <div className="profile-info">
-                        {fullName && (
-                            <>
-                                <span className="greeting">Welcome, {fullName}</span>
-                                <div className="profile-circle" onClick={handleProfileClick}>
-                                    {initials}
-                                </div>
-                            </>
+                        <span className="greeting">
+                            {username ? `Welcome, ${username}` : "Welcome!"}
+                        </span>
+                        {username && (
+                            <div className="profile-circle" onClick={handleProfileClick}>
+                                {initials}
+                            </div>
                         )}
                     </div>
                 </div>

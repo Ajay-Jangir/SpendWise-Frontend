@@ -42,7 +42,7 @@ const Wrapper = styled.div`
         z-index: 0;
     }
 
-    .login-left {
+    .register-left {
         flex: 1;
         display: flex;
         flex-direction: column;
@@ -70,7 +70,7 @@ const Wrapper = styled.div`
             }
         }
 
-        .login-box {
+        .register-box {
             width: 100%;
             max-width: 550px;
             border-radius: 20px;
@@ -135,8 +135,8 @@ const Wrapper = styled.div`
                     }
                 }
 
-                .login-btn {
-                    background: linear-gradient(135deg, #2196f3, #21cbf3);
+                .register-btn {
+                    background: linear-gradient(135deg, #21a2a7, #a1f0f2);
                     color: white;
                     padding: 14px;
                     border: none;
@@ -147,12 +147,12 @@ const Wrapper = styled.div`
                     transition: background 0.3s ease;
 
                     &:hover {
-                        background: linear-gradient(135deg, #1a76d2, #1eb8e5);
+                        background: linear-gradient(135deg, #21a2a7, #6fffe9);
                     }
                 }
             }
 
-            .login-options {
+            .register-options {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
@@ -173,7 +173,7 @@ const Wrapper = styled.div`
         }
     }
 
-    .login-right {
+    .register-right {
         flex: 1;
         display: flex;
         justify-content: center;
@@ -202,9 +202,9 @@ const Wrapper = styled.div`
     @media (max-width: 768px) {
         flex-direction: column;
 
-        .login-left {
+        .register-left {
             padding-top: 0;
-            .login-box {
+            .register-box {
                 padding: 2rem 1.5rem;
                 backdrop-filter: blur(10px);
                 border-radius: 16px;

@@ -1,21 +1,38 @@
-import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
-import Footer from '../Footer';
-import Header from '../Header';
-import Menu from '../Menu';
-import { Wrapper } from './style';
+/* eslint-disable no-unused-vars */
+import { Outlet, useNavigate } from "react-router-dom";
+import Header from "../Header";
+import Menu from "../Menu";
+import Footer from "../Footer"
+import { useEffect, useState } from "react";
+import { Wrapper } from "./style";
+import axiosInstance from "../axiosInstance";
 
 const Layout = () => {
-    const [menuOpen, setMenuOpen] = useState(false);
+    const navigate = useNavigate();
+    const [isMenuOpen, setIsMenuOpen] = useState(true);
+    const [username, setUsername] = useState("");
+
+    useEffect(() => {
+        const fetchUsername = async () => {
+            try {
+                const res = await axiosInstance.get("/api/auth/user");
+                setUsername(res.data.name);
+            } catch (err) {
+                navigate("/login");
+            }
+        };
+
+        fetchUsername();
+    }, [navigate]);
 
     return (
         <Wrapper>
-            <Header toggleMenu={() => setMenuOpen(prev => !prev)} />
+            <Header toggleMenu={() => setIsMenuOpen(!isMenuOpen)} username={username} />
             <div className="body">
-                <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
-                <main className="content">
-                    <Outlet />
-                </main>
+                <Menu isMenuOpen={isMenuOpen} />
+                <div className="content">
+                    <Outlet context={{ username, setUsername }} />
+                </div>
             </div>
             <Footer />
         </Wrapper>

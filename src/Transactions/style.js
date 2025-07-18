@@ -94,7 +94,7 @@ const Wrapper = styled.div`
             }
 
             .add-btn {
-                background: #00b894;
+                background-color: #21a2a7;
                 color: white;
                 border: none;
                 padding: 0.5rem 0.9rem;
@@ -254,7 +254,7 @@ const Wrapper = styled.div`
         position: fixed;
         inset: 0;
         background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(6px); /* ✅ new line */
+        backdrop-filter: blur(6px);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -267,8 +267,8 @@ const Wrapper = styled.div`
         padding: 1rem;
         border-radius: 12px;
         width: 500px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); /* ✅ add shadow */
-        animation: fadeInScale 0.3s ease; /* ✅ subtle entrance animation */
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        animation: fadeInScale 0.3s ease;
 
         h3 {
             margin-bottom: 1.25rem;
@@ -311,9 +311,8 @@ const Wrapper = styled.div`
             border-radius: 4px;
         }
 
-        /* Target the calendar icon */
         .custom-date-input::-webkit-calendar-picker-indicator {
-            filter: invert(1); /* Inverts icon color to white */
+            filter: invert(1);
             cursor: pointer;
         }
 
@@ -334,12 +333,11 @@ const Wrapper = styled.div`
             width: 100%;
         }
 
-        /* Fix width & alignment */
         .category-dropdown {
             position: absolute;
             top: 100%;
             left: 0;
-            width: 100%; /* match input width */
+            width: 100%;
             background: #1f1f2f;
             border: 1px solid #333;
             border-radius: 5px;
@@ -399,7 +397,7 @@ const Wrapper = styled.div`
                 border: none;
                 cursor: pointer;
                 color: white;
-                background: #00b894;
+                background-color: #21a2a7;
                 font-size: 0.9rem;
                 height: 40px;
                 transition: background 0.3s ease;
