@@ -22,9 +22,13 @@ const COLORS = [
 
 const formatINR = (amount) => {
     const absAmount = Math.abs(amount);
-    if (absAmount >= 1e7) return `${amount < 0 ? "-\u20B9" : "\u20B9"} ${(absAmount / 1e7).toFixed(2)} Cr`;
-    if (absAmount >= 1e5) return `${amount < 0 ? "-\u20B9" : "\u20B9"} ${(absAmount / 1e5).toFixed(2)} L`;
-    return `${amount < 0 ? "-\u20B9" : "\u20B9"} ${absAmount.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
+    if (absAmount >= 1e7)
+        return `${amount < 0 ? "₹ -" : "₹ "}${(absAmount / 1e7).toFixed(2)} Cr`;
+    if (absAmount >= 1e5)
+        return `${amount < 0 ? "₹ -" : "₹ "}${(absAmount / 1e5).toFixed(2)} L`;
+    return `${amount < 0 ? "₹ -" : "₹ "}${absAmount.toLocaleString("en-IN", {
+        maximumFractionDigits: 2,
+    })}`;
 };
 
 const selectOptions = [
