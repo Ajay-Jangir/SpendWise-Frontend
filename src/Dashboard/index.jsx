@@ -225,7 +225,7 @@ const Dashboard = () => {
                                             dataKey="value"
                                             nameKey="name"
                                             outerRadius={isMobile ? 65 : 95}
-                                            minAngle={10}
+                                            minAngle={25}
                                             label={renderCustomizedLabel}
                                         >
                                             {pieData.map((_, index) => (

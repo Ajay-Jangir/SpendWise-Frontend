@@ -263,10 +263,12 @@ const Transactions = () => {
     };
 
     const openEdit = (tx) => {
+        const formattedDate = new Date(tx.date).toISOString().split('T')[0];
         setEditing(tx);
-        setForm({ ...tx });
+        setForm({ ...tx, date: formattedDate });
         setModalType('edit');
     };
+
 
     const handleImport = async (e) => {
         const file = e.target.files[0];
