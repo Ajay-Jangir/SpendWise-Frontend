@@ -278,9 +278,12 @@ const Dashboard = () => {
 
                             <XAxis
                                 dataKey="month"
+                                interval={0}
                                 tick={{ fill: '#8884d8', fontSize: 12 }}
                                 axisLine={{ stroke: '#ccc' }}
-                                tickLine={false}
+                                angle={isMobile ? -45 : 0}
+                                textAnchor={isMobile ? 'end' : 'middle'}
+                                tickLine={true}
                             />
                             <YAxis
                                 domain={[0, maxY]}
