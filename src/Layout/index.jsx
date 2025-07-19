@@ -9,7 +9,7 @@ import axiosInstance from "../axiosInstance";
 
 const Layout = () => {
     const navigate = useNavigate();
-    const [isMenuOpen, setIsMenuOpen] = useState(true);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [username, setUsername] = useState("");
 
     useEffect(() => {
