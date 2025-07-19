@@ -29,7 +29,7 @@ const Layout = () => {
         <Wrapper>
             <Header toggleMenu={() => setIsMenuOpen(!isMenuOpen)} username={username} />
             <div className="body">
-                <Menu isMenuOpen={isMenuOpen} />
+                <Menu menuOpen={isMenuOpen} setMenuOpen={setIsMenuOpen} />
                 <div className="content">
                     <Outlet context={{ username, setUsername }} />
                 </div>
