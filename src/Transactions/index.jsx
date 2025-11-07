@@ -226,7 +226,7 @@ const Transactions = () => {
             amount: numericAmount
         };
 
-        setLoading(true); // 🟡 Start loading
+        setLoading(true);
 
         try {
             if (modalType === 'edit') {
